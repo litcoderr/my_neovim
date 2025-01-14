@@ -84,10 +84,20 @@ _G.packer_plugins = {
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/cmp-nvim-lsp",
     url = "https://github.com/hrsh7th/cmp-nvim-lsp"
   },
+  ["cyberdream.nvim"] = {
+    loaded = true,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/cyberdream.nvim",
+    url = "https://github.com/scottmckendry/cyberdream.nvim"
+  },
   ["github-nvim-theme"] = {
     loaded = true,
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/github-nvim-theme",
     url = "https://github.com/projekt0n/github-nvim-theme"
+  },
+  ["lualine.nvim"] = {
+    loaded = true,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/lualine.nvim",
+    url = "https://github.com/nvim-lualine/lualine.nvim"
   },
   ["mason-lspconfig.nvim"] = {
     loaded = true,
@@ -109,6 +119,11 @@ _G.packer_plugins = {
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/nvim-lspconfig",
     url = "https://github.com/neovim/nvim-lspconfig"
   },
+  ["nvim-tree.lua"] = {
+    loaded = true,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/nvim-tree.lua",
+    url = "https://github.com/kyazdani42/nvim-tree.lua"
+  },
   ["nvim-treesitter"] = {
     loaded = true,
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/nvim-treesitter",
@@ -129,6 +144,11 @@ _G.packer_plugins = {
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/rust.vim",
     url = "https://github.com/rust-lang/rust.vim"
   },
+  ["schemastore.nvim"] = {
+    loaded = true,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/schemastore.nvim",
+    url = "https://github.com/b0o/schemastore.nvim"
+  },
   ["telescope-file-browser.nvim"] = {
     loaded = true,
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/telescope-file-browser.nvim",
@@ -144,6 +164,13 @@ _G.packer_plugins = {
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/telescope.nvim",
     url = "https://github.com/nvim-telescope/telescope.nvim"
   },
+  ["vim-cursorword"] = {
+    loaded = false,
+    needs_bufread = false,
+    only_cond = false,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/opt/vim-cursorword",
+    url = "https://github.com/itchyny/vim-cursorword"
+  },
   ["vim-fugitive"] = {
     loaded = true,
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/vim-fugitive",
@@ -157,6 +184,14 @@ _G.packer_plugins = {
 }
 
 time([[Defining packer_plugins]], false)
+vim.cmd [[augroup packer_load_aucmds]]
+vim.cmd [[au!]]
+  -- Event lazy-loads
+time([[Defining lazy-load event autocommands]], true)
+vim.cmd [[au BufReadPost * ++once lua require("packer.load")({'vim-cursorword'}, { event = "BufReadPost *" }, _G.packer_plugins)]]
+vim.cmd [[au BufWinEnter * ++once lua require("packer.load")({'vim-cursorword'}, { event = "BufWinEnter *" }, _G.packer_plugins)]]
+time([[Defining lazy-load event autocommands]], false)
+vim.cmd("augroup END")
 
 _G._packer.inside_compile = false
 if _G._packer.needs_bufread == true then
