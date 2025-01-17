@@ -2,6 +2,8 @@
 --  Basic Settings
 -- ====================
 
+vim.opt.guicursor = "n-v-c:block-blinkwait500-blinkon200-blinkoff150,i-ci-ve:ver25-blinkwait500-blinkon200-blinkoff150,r-cr:hor20,o:hor50"
+
 -- Set leader key
 vim.g.mapleader = " "
 
@@ -62,6 +64,9 @@ require('packer').startup(function(use)
 
   -- Git Integration
   use 'tpope/vim-fugitive' -- Git commands
+
+  -- Scroll Bar
+  use("petertriho/nvim-scrollbar")
 
   -- Themes
   use 'Mofiqul/vscode.nvim'
@@ -215,7 +220,7 @@ require'nvim-tree'.setup {
     ignore_list = {}, -- List of file types to ignore
   },
 }
-vim.keymap.set('n', '<leader>ft', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
+vim.keymap.set('n', '<C-t>', ':NvimTreeToggle<CR>', { noremap = true, silent = true })
 
 -- ====================
 --  Autocompletion Setup
@@ -301,6 +306,11 @@ telescope.setup({
     },
   },
 })
+
+-- ====================
+--  Nvim Scrollbar Setup
+-- ====================
+require("scrollbar").setup()
 
 -- Load telescope extensions
 telescope.load_extension('fzf')
