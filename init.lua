@@ -100,16 +100,17 @@ require('neoscroll').setup({
     hide_cursor = true,            -- Hide cursor while scrolling
 })
 
-local t = {}
--- Define custom scroll mappings
--- Format: t[keys] = {'function', {function_args}}.
-t['<C-u>'] = {'scroll', {'-vim.wo.scroll', 'true', '150'}}
-t['<C-d>'] = {'scroll', { 'vim.wo.scroll', 'true', '150'}}
-t['<C-b>'] = {'scroll', {'-vim.api.nvim_win_get_height(0)', 'true', '200'}}
-t['<C-f>'] = {'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '200'}}
-t['<C-y>'] = {'scroll', {'-0.10', 'false', '100'}}
-t['<C-e>'] = {'scroll', { '0.10', 'false', '100'}}
-require('neoscroll.config').set_mappings(t)
+-- Custom scroll mappings
+local neoscroll = require('neoscroll')
+local map = {}
+
+map['<C-u>'] = {'scroll', {'-vim.wo.scroll', 'true', '150'}}
+map['<C-d>'] = {'scroll', { 'vim.wo.scroll', 'true', '150'}}
+map['<C-b>'] = {'scroll', {'-vim.api.nvim_win_get_height(0)', 'true', '200'}}
+map['<C-f>'] = {'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '200'}}
+map['<C-y>'] = {'scroll', {'-0.10', 'false', '100'}}
+map['<C-e>'] = {'scroll', { '0.10', 'false', '100'}}
+neoscroll.setup({ mappings = map })
 
 -- ====================
 --  LSP Keymaps & Setup
