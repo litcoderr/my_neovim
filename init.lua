@@ -68,6 +68,9 @@ require('packer').startup(function(use)
   -- Scroll Bar
   use("petertriho/nvim-scrollbar")
 
+  -- Smooth Scrolling
+  use 'karb94/neoscroll.nvim'
+
   -- Themes
   use 'Mofiqul/vscode.nvim'
   use 'projekt0n/github-nvim-theme'
@@ -88,6 +91,25 @@ require('mason-lspconfig').setup({
     'jsonls', -- JSON LSP
   }
 })
+
+-- ====================
+--  Neoscroll Setup
+-- ====================
+require('neoscroll').setup({
+    easing_function = "quadratic",  -- Easing function for smooth scrolling
+    hide_cursor = true,            -- Hide cursor while scrolling
+})
+
+local t = {}
+-- Define custom scroll mappings
+-- Format: t[keys] = {'function', {function_args}}.
+t['<C-u>'] = {'scroll', {'-vim.wo.scroll', 'true', '150'}}
+t['<C-d>'] = {'scroll', { 'vim.wo.scroll', 'true', '150'}}
+t['<C-b>'] = {'scroll', {'-vim.api.nvim_win_get_height(0)', 'true', '200'}}
+t['<C-f>'] = {'scroll', { 'vim.api.nvim_win_get_height(0)', 'true', '200'}}
+t['<C-y>'] = {'scroll', {'-0.10', 'false', '100'}}
+t['<C-e>'] = {'scroll', { '0.10', 'false', '100'}}
+require('neoscroll.config').set_mappings(t)
 
 -- ====================
 --  LSP Keymaps & Setup

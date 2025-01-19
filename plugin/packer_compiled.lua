@@ -109,6 +109,11 @@ _G.packer_plugins = {
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/mason.nvim",
     url = "https://github.com/williamboman/mason.nvim"
   },
+  ["neoscroll.nvim"] = {
+    loaded = true,
+    path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/neoscroll.nvim",
+    url = "https://github.com/karb94/neoscroll.nvim"
+  },
   ["nvim-cmp"] = {
     loaded = true,
     path = "/Users/jameschee/.local/share/nvim/site/pack/packer/start/nvim-cmp",
@@ -193,8 +198,8 @@ vim.cmd [[augroup packer_load_aucmds]]
 vim.cmd [[au!]]
   -- Event lazy-loads
 time([[Defining lazy-load event autocommands]], true)
-vim.cmd [[au BufReadPost * ++once lua require("packer.load")({'vim-cursorword'}, { event = "BufReadPost *" }, _G.packer_plugins)]]
 vim.cmd [[au BufWinEnter * ++once lua require("packer.load")({'vim-cursorword'}, { event = "BufWinEnter *" }, _G.packer_plugins)]]
+vim.cmd [[au BufReadPost * ++once lua require("packer.load")({'vim-cursorword'}, { event = "BufReadPost *" }, _G.packer_plugins)]]
 time([[Defining lazy-load event autocommands]], false)
 vim.cmd("augroup END")
 
