@@ -41,6 +41,15 @@ require('packer').startup(function(use)
   use 'nvim-treesitter/nvim-treesitter'-- Treesitter for better syntax
   use 'rust-lang/rust.vim'             -- Rust support
 
+  -- DAP
+  use 'mfussenegger/nvim-dap'              -- Core DAP plugin
+  use 'rcarriga/nvim-dap-ui'               -- DAP UI for interactive debugging
+  use 'mfussenegger/nvim-dap-python'       -- Python-specific adapter
+  use {
+    'nvim-neotest/nvim-nio',               -- nvim-nio dependency
+    requires = { 'nvim-lua/plenary.nvim' } -- Ensure plenary.nvim is installed
+  }
+
   -- Cursor word
   use {
     "itchyny/vim-cursorword",
@@ -446,4 +455,55 @@ require('lualine').setup({
     },
 })
 
+-- DAP setup
+local function get_python_path()
+  -- Use the Python path defined in Neovim settings
+  return vim.g.python3_host_prog or vim.fn.system("which python"):gsub("%s+", "")
+end
 
+-- Configure nvim-dap for Python
+local dap = require('dap')
+local dap_python = require('dap-python')
+local dapui = require('dapui')
+
+-- Setup dap-python with the correct interpreter
+dap_python.setup(get_python_path())
+
+-- Configure DAP UI
+dapui.setup()
+
+-- Automatically open/close DAP UI
+dap.listeners.after.event_initialized["dapui_config"] = function()
+  dapui.open()
+end
+dap.listeners.before.event_terminated["dapui_config"] = function()
+  dapui.close()
+end
+dap.listeners.before.event_exited["dapui_config"] = function()
+  dapui.close()
+end
+
+-- Debugging keymaps
+local opts = { noremap = true, silent = true }
+vim.keymap.set('n', '<F5>', dap.continue, opts)                 -- Start/continue debugging
+vim.keymap.set('n', '<F10>', dap.step_over, opts)              -- Step over
+vim.keymap.set('n', '<F11>', dap.step_into, opts)              -- Step into
+vim.keymap.set('n', '<F12>', dap.step_out, opts)               -- Step out
+vim.keymap.set('n', '<leader>db', dap.toggle_breakpoint, opts) -- Toggle breakpoint
+vim.keymap.set('n', '<leader>dc', dap.clear_breakpoints, opts) -- Clear breakpoints
+vim.keymap.set('n', '<leader>dr', dap.repl.open, opts)         -- Open DAP REPL
+vim.keymap.set('n', '<leader>dl', dap.run_last, opts)          -- Run last debug session
+vim.keymap.set('n', '<leader>du', dapui.toggle, opts)          -- Toggle DAP UI
+
+-- Python debug configurations
+dap.configurations.python = {
+  {
+    type = 'python',  -- Use the Python DAP
+    request = 'launch',
+    name = 'Launch file',
+    program = '${file}',  -- Run the current file
+    pythonPath = function()
+      return get_python_path()
+    end,
+  },
+}
