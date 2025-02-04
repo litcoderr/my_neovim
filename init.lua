@@ -171,6 +171,9 @@ lspconfig.pyright.setup({
   settings = {
     python = {
       pythonPath = vim.g.python3_host_prog,
+      analysis = {
+        typeCheckingMode = 'off',
+      }
     }
   }
 })
@@ -507,3 +510,4 @@ dap.configurations.python = {
     end,
   },
 }
+
