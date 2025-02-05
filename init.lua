@@ -98,6 +98,7 @@ require('mason-lspconfig').setup({
     'cssls',
     'rust_analyzer',
     'jsonls', -- JSON LSP
+    'clangd',
   }
 })
 
@@ -222,6 +223,16 @@ lspconfig.jsonls.setup({
     },
   },
 })
+
+-- C++ (clangd) Setup
+lspconfig.clangd.setup({
+  on_attach = on_attach,
+  cmd = { "clangd", "--background-index", "--clang-tidy", "--completion-style=detailed" },
+  filetypes = { "c", "cpp", "objc", "objcpp" },
+  root_dir = lspconfig.util.root_pattern("compile_commands.json", "compile_flags.txt", ".git"),
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+})
+
 
 -- ====================
 --  Cursorword setup
@@ -381,10 +392,16 @@ vim.keymap.set('n', '<leader>gb', builtin.git_branches, { noremap = true, silent
 -- ====================
 --vim.o.background = 'dark'
 --vim.cmd.colorscheme "github_dark_high_contrast"
-vim.cmd("colorscheme cyberdream")
 require("cyberdream").setup({
-  borderless_telescope = false
+  transparent = false,
+  borderless_telescope = false,
+  theme = {
+    colors = {
+      bg = "#000000",
+    },
+  },
 })
+vim.cmd("colorscheme cyberdream")
 
 -- ====================
 --  Indentation for All Files
