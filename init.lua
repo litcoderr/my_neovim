@@ -393,13 +393,19 @@ vim.keymap.set('n', '<leader>gb', builtin.git_branches, { noremap = true, silent
 --vim.o.background = 'dark'
 --vim.cmd.colorscheme "github_dark_high_contrast"
 require("cyberdream").setup({
-  transparent = false,
+  transparent = false,  -- Disable transparency to let Neovim handle the background
   borderless_telescope = false,
   theme = {
     colors = {
-      bg = "#000000",
+      bg = "#000000",  -- Set background to pure black
+      -- Customize other colors as needed to match VSCode
     },
   },
+  overrides = function(colors)
+    return {
+      -- TODO override color to match vscode
+    }
+  end,
 })
 vim.cmd("colorscheme cyberdream")
 
