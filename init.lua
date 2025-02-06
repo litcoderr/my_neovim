@@ -534,3 +534,6 @@ dap.configurations.python = {
   },
 }
 
+-- View Code Structure key binding
+vim.keymap.set('n', '<leader>cs', ':Telescope lsp_document_symbols<CR>', { noremap = true, silent = true, desc = "View code structure" })
+
