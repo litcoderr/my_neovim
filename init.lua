@@ -162,6 +162,31 @@ local on_attach = function(client, bufnr)
   end, opts)
 end
 
+-- goto enclosing function or method
+local function goto_enclosing_function_or_class()
+  local ts_utils = require('nvim-treesitter.ts_utils')
+  local node = ts_utils.get_node_at_cursor()
+
+  -- Save current position for <C-o> to work
+  vim.cmd("normal! m'")
+
+  while node do
+    local type = node:type()
+    if type == "function_definition" or type == "class_definition" or
+       type == "method_definition" or type == "struct_specifier" then
+      local start_row, start_col, _, _ = node:range()
+      vim.api.nvim_win_set_cursor(0, { start_row + 1, start_col })
+      return
+    end
+    node = node:parent()
+  end
+
+  print("No enclosing function or class found")
+end
+
+vim.keymap.set("n", "<leader>o", goto_enclosing_function_or_class, { noremap = true, silent = true })
+
+
 local lspconfig = require('lspconfig')
 
 -- Python
