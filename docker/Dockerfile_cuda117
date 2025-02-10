@@ -1,0 +1,58 @@
+# Use an official PyTorch image with CUDA support
+FROM pytorch/pytorch:2.0.1-cuda11.7-cudnn8-runtime
+
+# Avoid interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
+
+# set terminal info
+RUN echo 'export TERM=xterm-256color' >> ~/.bashrc
+
+# Update and install system dependencies
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    git \
+    curl \
+    wget \
+    python3-pip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install neovim from source
+RUN curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz && \
+    rm -rf /opt/nvim && \
+    tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+RUN echo 'export PATH="/opt/nvim-linux-x86_64/bin:$PATH"' >> /root/.bashrc
+
+# Install NPM
+RUN apt-get update && apt-get install -y \
+    curl \
+    ca-certificates \
+    gnupg \
+    && curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
+
+# Clone your Neovim configuration from GitHub into the default config directory.
+# (In this container the home directory is /root; if you create a user, adjust accordingly.)
+RUN mkdir -p /root/.config && \
+    git clone https://github.com/litcoderr/my_neovim.git /root/.config/nvim
+
+# (Optional) Ensure that packer.nvim is installed. Your config uses packer so you can
+# either let your config install it or pre-install it here:
+RUN git clone --depth 1 https://github.com/wbthomason/packer.nvim \
+    /root/.local/share/nvim/site/pack/packer/start/packer.nvim
+
+# Copy in a requirements file if present and install extra Python dependencies.
+# To add new Python dependencies, simply update (or create) a requirements.txt file
+# in the same folder as this Dockerfile.
+COPY requirements.txt /tmp/requirements.txt
+RUN if [ -f /tmp/requirements.txt ]; then pip install --no-cache-dir -r /tmp/requirements.txt; fi
+
+# Set the working directory (you can change this as needed)
+WORKDIR /workspace
+
+# Optionally expose a volume for your project files:
+VOLUME ["/workspace"]
+
+# Set the default command to bash.
+CMD ["/bin/bash"]
+
