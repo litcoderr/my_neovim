@@ -205,7 +205,7 @@ local function goto_enclosing_function_or_class()
   print("No enclosing function or class found")
 end
 
-vim.keymap.set("n", "<leader>o", goto_enclosing_function_or_class, { noremap = true, silent = true })
+vim.keymap.set("n", "<leader>ce", goto_enclosing_function_or_class, { noremap = true, silent = true })
 
 
 local lspconfig = require('lspconfig')
@@ -578,26 +578,128 @@ dap.configurations.python = {
 
 -- code structure shortcuts
 local function find_methods_or_functions()
-  local ts_utils = require('nvim-treesitter.ts_utils')
+  local ts_utils = require("nvim-treesitter.ts_utils")
+  local telescope = require("telescope.builtin")
   local node = ts_utils.get_node_at_cursor()
 
-  while node do
-    local type = node:type()
-    if type == "class_definition" then
-      -- If inside a class, list methods in the class
-      require('telescope.builtin').lsp_document_symbols({
-        symbols = { "Method" }
-      })
-      return
-    end
-    node = node:parent()
+  if not node then
+    print("No Treesitter node found.")
+    return
   end
 
-  -- If not inside a class, list all functions in the file
-  require('telescope.builtin').lsp_document_symbols({
-    symbols = { "Function", "Method" }
-  })
+  -- Walk upward to locate a Python class definition.
+  local current_node = node
+  local class_node = nil
+  while current_node do
+    if current_node:type() == "class_definition" then
+      class_node = current_node
+      break
+    end
+    current_node = current_node:parent()
+  end
+
+  if not class_node then
+    telescope.lsp_document_symbols({ symbols = { "Function", "Method" } })
+    return
+  end
+
+  -- Helper: Extract method name from its identifier child.
+  local function get_method_name(method_node)
+    for child in method_node:iter_children() do
+      if child:type() == "identifier" then
+        return vim.treesitter.get_node_text(child, vim.api.nvim_get_current_buf())
+      end
+    end
+    return vim.treesitter.get_node_text(method_node, vim.api.nvim_get_current_buf())
+  end
+
+  -- Recursively search for Python function definitions within the class.
+  local methods = {}
+  local function search_methods(node)
+    for child in node:iter_children() do
+      local child_type = child:type()
+      if child_type == "function_definition" or child_type == "async_function_definition" then
+        local start_row, _, _, _ = child:range()
+        local method_name = get_method_name(child)
+        table.insert(methods, { name = method_name, line = start_row + 1 })
+      end
+      search_methods(child)
+    end
+  end
+
+  search_methods(class_node)
+
+  if #methods == 0 then
+    print("No methods found in class.")
+    return
+  end
+
+  -- Capture the source buffer from which we want to pull content.
+  local source_bufnr = vim.api.nvim_get_current_buf()
+  local previewers = require("telescope.previewers")
+  
+  require("telescope.pickers").new({}, {
+    prompt_title = "Methods in Class",
+    finder = require("telescope.finders").new_table({
+      results = methods,
+      entry_maker = function(entry)
+        return {
+          value = entry,
+          display = entry.name,
+          ordinal = entry.name,
+          lnum = entry.line,
+        }
+      end,
+    }),
+    sorter = require("telescope.config").values.generic_sorter({}),
+    previewer = previewers.new_buffer_previewer({
+      define_preview = function(self, entry, status)
+        -- Retrieve all lines from the source buffer.
+        local all_lines = vim.api.nvim_buf_get_lines(source_bufnr, 0, -1, false)
+        local total_lines = #all_lines
+
+        -- Get the preview window height.
+        local preview_win = status.preview_win
+        local win_height = vim.api.nvim_win_get_height(preview_win)
+
+        -- Center the snippet around the method's starting line.
+        local target_line = entry.lnum -- (1-indexed)
+        local half_height = math.floor(win_height / 2)
+        local start_line = math.max(0, target_line - half_height - 1)  -- 0-indexed
+        local end_line = math.min(total_lines, start_line + win_height)
+
+        local snippet = {}
+        for i = start_line, end_line - 1 do
+          table.insert(snippet, all_lines[i + 1])
+        end
+
+        vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, snippet)
+        -- Set the filetype from the source buffer to trigger syntax highlighting.
+        local ft = vim.api.nvim_buf_get_option(source_bufnr, "filetype")
+        vim.api.nvim_buf_set_option(self.state.bufnr, "filetype", ft)
+        -- Clear any special buffer type to enable full highlighting.
+        vim.api.nvim_buf_set_option(self.state.bufnr, "buftype", "")
+        -- Force syntax to load by explicitly setting it.
+        vim.cmd(string.format("setlocal syntax=%s", ft))
+
+        -- Highlight the method's starting line within the snippet.
+        local highlight_line = target_line - start_line - 1
+        if highlight_line >= 0 and highlight_line < win_height then
+          vim.api.nvim_buf_add_highlight(self.state.bufnr, -1, "Search", highlight_line, 0, -1)
+        end
+      end,
+    }),
+    attach_mappings = function(_, map)
+      map("i", "<CR>", function(prompt_bufnr)
+        local selection = require("telescope.actions.state").get_selected_entry()
+        require("telescope.actions").close(prompt_bufnr)
+        vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
+      end)
+      return true
+    end,
+  }):find()
 end
+
 local function find_classes()
   require('telescope.builtin').lsp_document_symbols({
     symbols = { "Class", "Struct" }
@@ -620,7 +722,6 @@ vim.keymap.set("n", "<leader>on", function()
   vim.cmd("ObsidianNew")                -- Create a new note
   vim.cmd("lcd " .. original_cwd)       -- Restore original working directory
 end, { noremap = true, silent = true })
---vim.keymap.set("n", "<leader>on", "<cmd>ObsidianNew<CR>", { noremap = true, silent = true }) -- Create a new note
 vim.keymap.set("n", "<leader>ot", "<cmd>ObsidianToday<CR>", { noremap = true, silent = true }) -- Open today's note
 vim.keymap.set("n", "<leader>of", "<cmd>ObsidianQuickSwitch<CR>", { noremap = true, silent = true }) -- Fuzzy find notes
 vim.keymap.set("n", "<leader>ol", "<cmd>ObsidianFollowLink<CR>", { noremap = true, silent = true }) -- Follow link under cursor
