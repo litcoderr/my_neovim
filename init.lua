@@ -84,6 +84,27 @@ require('packer').startup(function(use)
   use 'Mofiqul/vscode.nvim'
   use 'projekt0n/github-nvim-theme'
   use { "scottmckendry/cyberdream.nvim" }
+
+  -- Obsidian
+  use({
+    "epwalsh/obsidian.nvim",
+    tag = "*",
+    requires = {
+      "nvim-lua/plenary.nvim",
+    },
+    config = function()
+      require("obsidian").setup({
+        workspaces = {
+          {
+            name = "personal",
+            path = "~/ObsidianVault",
+            strict = true,
+          },
+        },
+        notes_subdir = ".",
+      })
+    end,
+  })
 end)
 
 -- ====================
@@ -555,6 +576,53 @@ dap.configurations.python = {
   },
 }
 
+-- code structure shortcuts
+local function find_methods_or_functions()
+  local ts_utils = require('nvim-treesitter.ts_utils')
+  local node = ts_utils.get_node_at_cursor()
+
+  while node do
+    local type = node:type()
+    if type == "class_definition" then
+      -- If inside a class, list methods in the class
+      require('telescope.builtin').lsp_document_symbols({
+        symbols = { "Method" }
+      })
+      return
+    end
+    node = node:parent()
+  end
+
+  -- If not inside a class, list all functions in the file
+  require('telescope.builtin').lsp_document_symbols({
+    symbols = { "Function", "Method" }
+  })
+end
+local function find_classes()
+  require('telescope.builtin').lsp_document_symbols({
+    symbols = { "Class", "Struct" }
+  })
+end
 -- View Code Structure key binding
 vim.keymap.set('n', '<leader>cs', ':Telescope lsp_document_symbols<CR>', { noremap = true, silent = true, desc = "View code structure" })
+-- View method or function within cursor class or file
+vim.keymap.set("n", "<leader>cm", find_methods_or_functions, { noremap = true, silent = true })
+-- View all classes within this file
+vim.keymap.set("n", "<leader>cc", find_classes, { noremap = true, silent = true })
+
+
+
+-- Obsidian key binding
+vim.opt.conceallevel = 1
+vim.keymap.set("n", "<leader>on", function()
+  local original_cwd = vim.fn.getcwd()  -- Save current working directory
+  vim.cmd("lcd ~/ObsidianVault")        -- Switch to Obsidian vault
+  vim.cmd("ObsidianNew")                -- Create a new note
+  vim.cmd("lcd " .. original_cwd)       -- Restore original working directory
+end, { noremap = true, silent = true })
+--vim.keymap.set("n", "<leader>on", "<cmd>ObsidianNew<CR>", { noremap = true, silent = true }) -- Create a new note
+vim.keymap.set("n", "<leader>ot", "<cmd>ObsidianToday<CR>", { noremap = true, silent = true }) -- Open today's note
+vim.keymap.set("n", "<leader>of", "<cmd>ObsidianQuickSwitch<CR>", { noremap = true, silent = true }) -- Fuzzy find notes
+vim.keymap.set("n", "<leader>ol", "<cmd>ObsidianFollowLink<CR>", { noremap = true, silent = true }) -- Follow link under cursor
+vim.keymap.set("n", "<leader>ob", "<cmd>ObsidianBacklinks<CR>", { noremap = true, silent = true }) -- Show backlinks
 
