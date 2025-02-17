@@ -84,27 +84,6 @@ require('packer').startup(function(use)
   use 'Mofiqul/vscode.nvim'
   use 'projekt0n/github-nvim-theme'
   use { "scottmckendry/cyberdream.nvim" }
-
-  -- Obsidian
-  use({
-    "epwalsh/obsidian.nvim",
-    tag = "*",
-    requires = {
-      "nvim-lua/plenary.nvim",
-    },
-    config = function()
-      require("obsidian").setup({
-        workspaces = {
-          {
-            name = "personal",
-            path = "~/ObsidianVault",
-            strict = true,
-          },
-        },
-        notes_subdir = ".",
-      })
-    end,
-  })
 end)
 
 -- ====================
@@ -711,45 +690,4 @@ vim.keymap.set('n', '<leader>cs', ':Telescope lsp_document_symbols<CR>', { norem
 vim.keymap.set("n", "<leader>cm", find_methods_or_functions, { noremap = true, silent = true })
 -- View all classes within this file
 vim.keymap.set("n", "<leader>cc", find_classes, { noremap = true, silent = true })
-
-
-
--- Obsidian key binding
-vim.opt.conceallevel = 1
-vim.keymap.set("n", "<leader>on", function()
-  local original_cwd = vim.fn.getcwd()  -- Save current working directory
-  vim.cmd("lcd ~/ObsidianVault")        -- Switch to Obsidian vault
-  vim.cmd("ObsidianNew")                -- Create a new note
-  vim.cmd("lcd " .. original_cwd)       -- Restore original working directory
-end, { noremap = true, silent = true })
-vim.keymap.set("n", "<leader>ot", function()
-  local date = os.date("%Y-%m-%d")
-  local vault_path = os.getenv("HOME") .. "/ObsidianVault/daily/"
-  local file_path = vault_path .. date .. ".md"
-
-  -- Ensure the directory exists
-  vim.fn.mkdir(vault_path, "p")
-
-  -- Create the file if it doesn't exist
-  if vim.fn.filereadable(file_path) == 0 then
-    local file = io.open(file_path, "w")
-    if file then
-      -- Write Obsidian-style YAML front matter
-      file:write("---\n")
-      file:write("title: " .. date .. "\n")
-      file:write("aliases: [\"" .. date .. "\"]\n")
-      file:write("tags: [daily]\n")
-      file:write("created: " .. os.date("%Y-%m-%dT%H:%M:%S") .. "\n")
-      file:write("---\n\n")
-      file:write("# " .. date .. "\n\n") -- Optional: Adds a title
-      file:close()
-    end
-  end
-
-  -- Open the file in the current Neovim buffer
-  vim.cmd("edit " .. file_path)
-end, { noremap = true, silent = true })
-vim.keymap.set("n", "<leader>of", "<cmd>ObsidianQuickSwitch<CR>", { noremap = true, silent = true }) -- Fuzzy find notes
-vim.keymap.set("n", "<leader>ol", "<cmd>ObsidianFollowLink<CR>", { noremap = true, silent = true }) -- Follow link under cursor
-vim.keymap.set("n", "<leader>ob", "<cmd>ObsidianBacklinks<CR>", { noremap = true, silent = true }) -- Show backlinks
 
