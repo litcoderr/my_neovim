@@ -9,18 +9,20 @@ vim.g.mapleader = " "
 
 -- Enable system clipboard
 vim.opt.clipboard = "unnamedplus"
-vim.g.clipboard = {
-    name = "xclip",
-    copy = {
-        ["+"] = "xclip -selection clipboard",
-        ["*"] = "xclip -selection primary"
-    },
-    paste = {
-        ["+"] = "xclip -selection clipboard -o",
-        ["*"] = "xclip -selection primary -o"
-    },
-    cache_enabled = 1
-}
+if vim.loop.os_uname().sysname == "Linux" then
+  vim.g.clipboard = {
+      name = "xclip",
+      copy = {
+          ["+"] = "xclip -selection clipboard",
+          ["*"] = "xclip -selection primary"
+      },
+      paste = {
+          ["+"] = "xclip -selection clipboard -o",
+          ["*"] = "xclip -selection primary -o"
+      },
+      cache_enabled = 1
+  }
+end
 
 -- Visual mode clipboard keybindings
 vim.keymap.set('v', '<leader>y', '"+y', { noremap = true, silent = true }) -- Copy to clipboard
